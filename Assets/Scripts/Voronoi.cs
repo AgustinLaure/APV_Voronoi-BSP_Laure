@@ -1,37 +1,97 @@
 using UnityEngine;
 using System.Collections.Generic;
 using CustomMath;
-using System.IO.IsolatedStorage;
-using System.Drawing;
+using UnityEditor.ShaderGraph;
+
 public class Voronoi : MonoBehaviour
 {
-    [SerializeField] private Transform[] regionsTrs;
+    [SerializeField] private GameObject[] regionsObj;
+    [SerializeField] private GameObject player;
 
     private List<Region> regions = new List<Region>();
     private bool isAllSet = false;
+    private Color isPlayerInColor;
 
     public class Region
     {
+        public Region(Color color, Vec3 pos)
+        {
+            this.pos = pos;
+            this.color = color;
+            this.baseColor = color;
+        }
+
+        private bool isPlayerIn = false;
+        public bool IsPlayerIn { get { return isPlayerIn; } set { isPlayerIn = value; } }
+
+        private Color baseColor;
+        public Color BaseColor { get { return baseColor; } private set { } }
+
+        private Color color;
+        public Color Color { get { return color; } set { color = value; } }
+
         public Vec3 pos;
         public List<MyPlane> planes = new List<MyPlane>();
     }
 
     private void Awake()
     {
+        isPlayerInColor.r = 10f;
+        isPlayerInColor.g = 10f;
+        isPlayerInColor.b = 10f;
+        isPlayerInColor.a = 1f;
+
         SetRegionsPos();
         SetRegionsPlanes();
         isAllSet = true;
     }
 
-    private void SetRegionsPos()
+    private void Update()
     {
-        for (int i = 0; i < regionsTrs.Length; i++)
+        UpdateClosestRegionToPlayer();
+
+        for (int i = 0; i < regionsObj.Length; i++)
         {
-            regions.Add(new Region());
-            regions[i].pos = new Vec3(regionsTrs[i].transform.position);
+            Color currentColor = regions[i].BaseColor;
+
+            if (regions[i].IsPlayerIn)
+            {
+                currentColor = isPlayerInColor;
+            }
+
+            regions[i].Color = currentColor;
+
+            regionsObj[i].GetComponent<MeshRenderer>().material.color = regions[i].Color;
         }
     }
 
+    private void UpdateClosestRegionToPlayer()
+    {
+        Region closestRegionToPlayer = GetClosestRegion(new Vec3(player.transform.position));
+
+        foreach (var region in regions)
+        {
+            region.IsPlayerIn = region == closestRegionToPlayer;
+        }
+    }
+    private void SetRegionsPos()
+    {
+        for (int i = 0; i < regionsObj.Length; i++)
+        {
+            regions.Add(new Region(GetRandomColor(), new Vec3(regionsObj[i].transform.position)));
+        }
+    }
+
+    private Color GetRandomColor()
+    {
+        Color randomColor;
+        randomColor.r = Random.Range(20, 255) / 255f;
+        randomColor.g = Random.Range(20, 255) / 255f;
+        randomColor.b = Random.Range(20, 255) / 255f;
+        randomColor.a = 1f;
+
+        return randomColor;
+    }
     private void SetRegionsPlanes()
     {
         for (int i = 0; i < regions.Count; i++)
@@ -46,6 +106,37 @@ public class Voronoi : MonoBehaviour
                 regions[i].planes.Add(GetPlaneInBetween(regions[i].pos, regions[j].pos));
             }
         }
+
+        RemoveRedundantPlanes();
+    }
+
+    private void RemoveRedundantPlanes()
+    {
+        for (int i = 0; i < regions.Count; i++)
+        {
+            for (int j = 0; j < regions[i].planes.Count; j++)
+            {
+                if (IsPlaneRedundant(regions[i], regions[i].planes[j]))
+                {
+                    regions[i].planes.Remove(regions[i].planes[j]);
+                }
+            }
+        }
+    }
+
+    private bool IsPlaneRedundant(Region region, MyPlane toCheckPlane)
+    {
+        Vec3 toCheckPlaneClosestPoint = toCheckPlane.ClosestPointOnPlane(region.pos);
+
+        foreach (MyPlane regionPlane in region.planes)
+        {
+            if (!regionPlane.GetSide(toCheckPlaneClosestPoint))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private MyPlane GetPlaneInBetween(Vec3 from, Vec3 to)
@@ -56,13 +147,17 @@ public class Voronoi : MonoBehaviour
         return new MyPlane(planeNormal, middlePoint);
     }
 
-    private void DrawPlane(MyPlane plane)
+    private void DrawPlaneFromRegion(MyPlane plane, Vec3 regionPos, Color color)
     {
-        Vec3 planeCenter = plane.Normal * plane.Distance;
+        Vec3 planeCenter = plane.ClosestPointOnPlane(regionPos);
+        Gizmos.color = color;
+
         Gizmos.DrawLine(planeCenter, planeCenter + plane.Normal);
 
         //draw tip
         Gizmos.DrawSphere(planeCenter + plane.Normal, 0.05f);
+
+        Gizmos.color = default;
     }
 
     public Region GetClosestRegion(Vec3 point)
@@ -102,7 +197,7 @@ public class Voronoi : MonoBehaviour
         {
             for (int j = 0; j < regions[i].planes.Count; j++)
             {
-                DrawPlane(regions[i].planes[j]);
+                DrawPlaneFromRegion(regions[i].planes[j], regions[i].pos, regions[i].Color);
             }
         }
     }
