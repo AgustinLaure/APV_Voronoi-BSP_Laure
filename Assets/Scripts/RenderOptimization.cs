@@ -12,12 +12,15 @@ public class RenderOptimization : MonoBehaviour
     private List<Window> windows = new List<Window>();
     private List<Vec3> debugPartitions = new List<Vec3>();
 
+    [SerializeField] private float horizontalFov;
+    [SerializeField] private float verticalFov;
+
     private const int precisionX = 5;
     private const int precisionY = 2;
 
     [SerializeField] private float rayDistance = 1f;
-    private Vec3[] raysDir = new Vec3[1];
-    private Vec3[] raysCollisionPoint = new Vec3[1];
+    private Vec3[] raysDir = new Vec3[precisionX * precisionY];
+    private Vec3[] raysCollisionPoint = new Vec3[precisionX * precisionY];
 
     void Start()
     {
@@ -153,7 +156,27 @@ public class RenderOptimization : MonoBehaviour
     }
     private void CalculateRaysDir()
     {
-        raysDir[0] = new Vec3(camera.transform.forward);
+        float wideness = Mathf.Tan(horizontalFov * Mathf.Deg2Rad * 0.5f);
+        float height = Mathf.Tan(verticalFov * Mathf.Deg2Rad * 0.5f);
+
+        Vec3 bottomLeft = new Vec3(camera.transform.position + camera.transform.forward + -camera.transform.right * wideness + -camera.transform.up * height);
+
+        float wideIter = wideness * 2 / precisionX;
+        float heightIter = height * 2 / precisionY;
+
+        int rays = 0;
+        for (int i = 0; i < precisionX; i++)
+        {
+            for (int j = 0; j < precisionY; j++)
+            {
+                Vec3 vec = new Vec3(bottomLeft + camera.transform.right * wideIter * i + camera.transform.up * heightIter * j);
+                vec -= new Vec3(camera.transform.position);
+                vec.Normalize();
+
+                raysDir[rays] = vec;
+                rays++;
+            }
+        }
     }
     private void CalculateRaysEnd()
     {
