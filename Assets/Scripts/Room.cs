@@ -39,22 +39,22 @@ public class Room : MonoBehaviour
         currentDirToCenter = roomCenter - currentWallCenter;
         planes[1] = new MyPlane(currentDirToCenter, currentWallCenter);
 
-        wallsCenter[2] = roomCenter + (new Vec3(-transform.up) * roomExtents.x);
+        wallsCenter[2] = roomCenter + (new Vec3(-transform.up) * roomExtents.y);
         currentWallCenter = wallsCenter[2];
         currentDirToCenter = roomCenter - currentWallCenter;
         planes[2] = new MyPlane(currentDirToCenter, currentWallCenter);
 
-        wallsCenter[3] = roomCenter + (new Vec3(transform.up) * roomExtents.x);
+        wallsCenter[3] = roomCenter + (new Vec3(transform.up) * roomExtents.y);
         currentWallCenter = wallsCenter[3];
         currentDirToCenter = roomCenter - currentWallCenter;
         planes[3] = new MyPlane(currentDirToCenter, currentWallCenter);
 
-        wallsCenter[4] = roomCenter + (new Vec3(-transform.forward) * roomExtents.x);
+        wallsCenter[4] = roomCenter + (new Vec3(-transform.forward) * roomExtents.z);
         currentWallCenter = wallsCenter[4];
         currentDirToCenter = roomCenter - currentWallCenter;
         planes[4] = new MyPlane(currentDirToCenter, currentWallCenter);
 
-        wallsCenter[5] = roomCenter + (new Vec3(transform.forward) * roomExtents.x);
+        wallsCenter[5] = roomCenter + (new Vec3(transform.forward) * roomExtents.z);
         currentWallCenter = wallsCenter[5];
         currentDirToCenter = roomCenter - currentWallCenter;
         planes[5] = new MyPlane(currentDirToCenter, currentWallCenter);
