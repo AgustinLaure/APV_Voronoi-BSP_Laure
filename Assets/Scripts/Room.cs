@@ -6,9 +6,11 @@ public class Room : MonoBehaviour
 {
     //[SerializeField] GameObject[] items;
 
+    public bool isDrawable = true;
     public MyPlane[] planes = new MyPlane[6];
     public Vec3[] wallsCenter = new Vec3[6];
     [SerializeField] public List<Room> neighbors = new List<Room>();
+    [SerializeField] public List<Window> windows = new List<Window>();
 
     private void Awake()
     {
@@ -50,6 +52,21 @@ public class Room : MonoBehaviour
         planes[5] = new MyPlane(currentDirToCenter, currentWallCenter);
     }
 
+    public bool IsInsideRoom(Vec3 point)
+    {
+        bool isInside = true;
+
+        for (int i = 0; i < planes.Length; i++)
+        {
+            if (!planes[i].GetSide(point))
+            {
+                isInside = false;
+                break;
+            }
+        }
+
+        return isInside;
+    }
     public void DrawPlaneFromPoint(MyPlane plane, Vec3 point, Color color)
     {
         Vec3 planeCenter = point;
