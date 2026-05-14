@@ -174,7 +174,7 @@ namespace CustomMath
 
         public static Vec3 Cross(Vec3 a, Vec3 b)
         {
-            return new Vec3(a.y * b.z - a.z * b.y, 0f - (a.x * b.z - a.z * b.x), a.x * b.y - a.y * b.x);
+            return new Vec3(a.y * b.z - a.z * b.y, (a.x * b.z - a.z * b.x), a.x * b.y - a.y * b.x);
         }
 
         public static float Distance(Vec3 a, Vec3 b)

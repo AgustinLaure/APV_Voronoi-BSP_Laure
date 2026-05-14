@@ -107,7 +107,7 @@ public class Voronoi : MonoBehaviour
             }
         }
 
-        RemoveRedundantPlanes();
+        //RemoveRedundantPlanes();
     }
 
     private void RemoveRedundantPlanes()
