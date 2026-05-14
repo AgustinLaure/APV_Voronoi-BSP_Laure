@@ -1,5 +1,4 @@
 using CustomMath;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class Building : MonoBehaviour
@@ -13,13 +12,13 @@ public class Building : MonoBehaviour
             rooms[i].isDrawable = false;
         }
     }
-    public bool GetRoom(Room room, Vec3 point)
+    public bool GetRoomIndex(ref int index, Vec3 point)
     {
         for (int i = 0; i < rooms.Length; i++)
         {
             if (rooms[i].IsInsideRoom(point))
             {
-                room = rooms[i];
+                index = i;
                 return true;
             }
         }
@@ -29,6 +28,39 @@ public class Building : MonoBehaviour
 
     public bool AreAtContiguousRooms(Vec3 point1, Vec3 point2)
     {
-        GetRoom(point1);
+        bool areAtContiguousRooms = false;
+
+        int room1Index = 0;
+        int room2Index = 0;
+
+        if (!GetRoomIndex(ref room1Index, point1) || !GetRoomIndex(ref room2Index, point2))
+        {
+            return true;
+        }
+
+        if (room1Index == room2Index)
+        {
+            return true;
+        }
+        else
+        {
+            for (int i = 0; i < rooms[room1Index].neighbors.Count; i++)
+            {
+                if (rooms[room1Index].neighbors[i] == rooms[room2Index])
+                {
+                    return true;
+                }
+            }
+
+            for (int i = 0; i < rooms[room2Index].neighbors.Count; i++)
+            {
+                if (rooms[room2Index].neighbors[i] == rooms[room1Index])
+                {
+                    return true;
+                }
+            }
+        }
+
+        return areAtContiguousRooms;
     }
 }

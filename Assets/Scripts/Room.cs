@@ -9,9 +9,17 @@ public class Room : MonoBehaviour
     public bool isDrawable = true;
     public MyPlane[] planes = new MyPlane[6];
     public Vec3[] wallsCenter = new Vec3[6];
+    [SerializeField] private GameObject[] items;
     [SerializeField] public List<Room> neighbors = new List<Room>();
     [SerializeField] public List<Window> windows = new List<Window>();
-
+    private void Update()
+    {
+        Debug.Log(isDrawable);
+        for (int i = 0; i < items.Length; i++)
+        {
+            items[i].GetComponent<Renderer>().enabled = isDrawable;
+        }
+    }
     private void Awake()
     {
         BoxCollider roomCollider = GetComponent<BoxCollider>();

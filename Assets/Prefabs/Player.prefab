@@ -267,6 +267,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
   rotationSpeed: 20
+  moveSpeed: 3
   renderOptimization: {fileID: 0}
 --- !u!114 &4730898545593053587
 MonoBehaviour:
@@ -282,5 +283,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::RenderOptimization
   camera: {fileID: 9085692895678772335}
   building: {fileID: 0}
-  windows: []
   rayDistance: 1

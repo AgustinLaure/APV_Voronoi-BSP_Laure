@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 using CustomMath;
+using UnityEditor.Rendering.BuiltIn.ShaderGraph;
 
 public class RenderOptimization : MonoBehaviour
 {
@@ -9,6 +10,7 @@ public class RenderOptimization : MonoBehaviour
     [SerializeField] private Camera camera;
     [SerializeField] private Building building;
     private List<Window> windows = new List<Window>();
+    private List<Vec3> debugPartitions = new List<Vec3>();
 
     private const int precisionX = 5;
     private const int precisionY = 2;
@@ -36,24 +38,63 @@ public class RenderOptimization : MonoBehaviour
 
     private void SetDrawableRooms()
     {
+        building.ResetIsDrawable();
+        debugPartitions.Clear();
+
+        Vec3 firstFrom = new Vec3(camera.transform.position);
+        int startingRoomIndex = 0;
+
+        if (building.GetRoomIndex(ref startingRoomIndex, firstFrom))
+        {
+            building.rooms[startingRoomIndex].isDrawable = true;
+        }
+
         for (int i = 0; i < raysCollisionPoint.Length; i++)
         {
-            Room currentRoom = new Room();
-            Bsp(currentRoom, new Vec3(camera.transform.position), raysCollisionPoint[i]);
+            Vec3 firstTo = raysCollisionPoint[i];
+
+            if (building.GetRoomIndex(ref startingRoomIndex, firstTo))
+            {
+                building.rooms[startingRoomIndex].isDrawable = true;
+            }
+
+            if (!building.AreAtContiguousRooms(firstFrom, firstTo))
+            {
+                Bsp(firstFrom, firstFrom, firstTo, i);
+            }
         }
     }
 
-    private void Bsp(Room currentRoom, Vec3 from, Vec3 to)
+    private void Bsp(Vec3 current, Vec3 from, Vec3 to, int rayIndex)
     {
-        building.GetRoom(currentRoom, from);
+        debugPartitions.Add(current);
 
-        if (!currentRoom.isDrawable)
+        int currentRoomIndex = 0;
+        building.GetRoomIndex(ref currentRoomIndex, current);
+
+        building.rooms[currentRoomIndex].isDrawable = true;
+
+        Vec3 nextPartitionDir = Vec3.Zero;
+
+        if (building.AreAtContiguousRooms(current, from) && building.AreAtContiguousRooms(current, to))
         {
-            currentRoom.isDrawable = true;
+            return;
+        }
+        else if (building.AreAtContiguousRooms(current, from))
+        {
+            nextPartitionDir = to - current;
+            from = current;
+        }
+        else if (building.AreAtContiguousRooms(current, to))
+        {
+            nextPartitionDir = from - current;
+            to = current;
         }
 
-        Vec3 nextPartitionDir = from - to;
-        Vec3 point = to + nextPartitionDir * 0.5f;
+        Vec3 point = current + nextPartitionDir * 0.5f;
+        current = point;
+
+        Bsp(current, from, to, rayIndex);
     }
     private bool SetRayCollisionPoint(MyPlane plane, Vec3 dir, int rayIndex, ref float smallestTValue)
     {
@@ -140,6 +181,11 @@ public class RenderOptimization : MonoBehaviour
         for (int i = 0; i < raysCollisionPoint.Length; i++)
         {
             Gizmos.DrawSphere(raysCollisionPoint[i], 0.05f);
+        }
+
+        foreach (Vec3 partition in debugPartitions)
+        {
+            Gizmos.DrawSphere(partition, 0.05f);
         }
     }
 
